@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">E_Inspector</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_submit">Submit new Case</string>
+    <string name="action_send">Send</string>
+    <string name="title_activity_submit_case">Submit Case details</string>
+    <string name="title_activity_case_details">Case Resolution</string>
+    <string name="action_settings">Update Case</string>
+    <string name="title_activity_login">Login</string>
+    <string name="note_email">Enter your email address</string>
+    <string name="email">Email Address</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="signup">Don\'t have account? Sign Up</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="app_loading">Loading...</string>
+    <string name="title_activity_token">TokenActivity</string>
+    <string name="title_activity_authentication">Authentication </string>
+    <string name="title_confirmation_activity_authentication">Confirm</string>
+    <string name="confirmation_activity_authentication">Are you sure you want to cancel?</string>
+    <string name="confirmation_yes">Yes</string>
+    <string name="confirmation_no">No</string>
+    <string name="broker_processing">Broker is processing</string>
+    <string name="login_title">Hello Login</string>
+    <string name="login_hint">someone@contoso.com</string>
+    <string name="title_activity_fragment_holder">FragmentHolderActivity</string>
+    <string name="sample_clear_tokens">Clear Tokens</string>
+    <string name="sample_use_token">Use Token</string>
+    <string name="sample_get_token">Get Token</string>
+    <string name="sample_clear_cookies">Clear Cookies</string>
+    <string name="sample_token_by_refresh_token">Acquire By Refresh Token</string>
+    <string name="sample_refresh_session">Refresh Session</string>
+    <string name="sample_token_silent">Get Token Silent</string>
+    <string name="sample_fragment_test">Fragment Test</string>
+    <string name="title_activity_splash">Welcome</string>
+    <string name="title_activity_register">Register</string>
+    <string name="title_activity_main2">Main</string>
+    <string name="welcome">Welcome</string>
+</resources>

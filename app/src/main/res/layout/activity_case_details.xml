@@ -1,0 +1,120 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+
+        <TextView
+            android:id="@+id/casedeials"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Case Details"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:textSize="17sp"
+            />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="fill_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerInside"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/casedeials" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/imageView2"
+
+            android:id="@+id/linearLayout">
+
+            <Button
+                android:id="@+id/buttonPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="playAudio"
+                android:text="Play" />
+
+            <Button
+                android:id="@+id/buttonStop"
+                android:layout_weight="1"
+                android:onClick="stopAudio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_toEndOf="@+id/button"
+                android:text="Stop" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Location:"
+            android:id="@+id/textView3"
+            android:textColor="@color/black"
+            android:layout_below="@+id/linearLayout"
+            android:layout_alignParentStart="true" />
+        <View
+            android:id="@+id/view"
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/textView3"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="10dp"
+            android:background="#ff334a" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Description"
+            android:id="@+id/textView4"
+            android:textColor="@color/black"
+            android:layout_below="@+id/view"
+            android:layout_alignParentStart="true" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:ems="10"
+            android:lines="4"
+            android:background="@color/button_material_light"
+            android:maxLines="3"
+            android:maxLength="50"
+            android:editable="false"
+            android:textColor="@color/black"
+            android:id="@+id/editText3"
+            android:enabled="false"
+            android:layout_below="@+id/textView4"
+            android:layout_alignEnd="@+id/view"
+            android:layout_alignParentStart="true" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:layout_marginTop="10dp"
+            android:ems="10"
+            android:id="@+id/editText4"
+            android:lines="5"
+            android:background="@color/dim_foreground_disabled_material_dark"
+            android:textColor="@color/black"
+            android:maxLength="100"
+            android:hint="Write Resolution Comment"
+            android:layout_alignParentStart="true"
+            android:layout_alignEnd="@+id/editText3"
+            android:layout_below="@+id/editText3" />
+    </RelativeLayout>
+</ScrollView>
