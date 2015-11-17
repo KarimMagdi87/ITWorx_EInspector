@@ -1,10 +1,12 @@
 package itworx.com.e_inspector;
 
 import android.app.ProgressDialog;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.app.Activity;
 import android.content.Intent;
 import android.location.Location;
@@ -20,6 +22,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -28,35 +35,35 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class SubmitCaseActivity extends Activity {
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
+import android.Manifest;
+
+import com.google.android.gms.maps.model.MarkerOptions;
+
+
+public class SubmitCaseActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private MediaRecorder myRecorder;
 
     private MediaPlayer myPlayer;
-
     private String outputFile = null;
-
     private Button startBtn;
-
     private Button stopBtn;
-
     private Button playBtn;
-
     private Button stopPlayBtn;
-
     private TextView text;
-
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
     private Uri imageToUploadUri;
-
     private String mCurrentPhotoPath;
     private static final int CAMERA_PHOTO = 111;
     private ProgressDialog pDialog;
-
-    // UI elements
-    private TextView lblLocation;
-
     Case mCase = new Case();
     String json = "";
     boolean uploadStatus = false;
@@ -73,43 +80,123 @@ public class SubmitCaseActivity extends Activity {
     private Location mLastLocation;
 
     // Google client to interact with Google API
-    //private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient mGoogleApiClient;
 
     // boolean flag to toggle periodic location updates
     private boolean mRequestingLocationUpdates = false;
 
-    //private LocationRequest mLocationRequest;
+    private LocationRequest mLocationRequest;
 
     // Location updates intervals in sec
     private static int UPDATE_INTERVAL = 10000; // 10 sec
     private static int FATEST_INTERVAL = 5000; // 5 sec
     private static int DISPLACEMENT = 10; // 10 meters
+    // UI elements
+    private TextView lblLocation;
+
+    private LatLng DAVAO = new LatLng(7.0722, 125.6131);
+    private GoogleMap map;
+
+    private static final int REQUEST_AUDIO = 0;
+    private static final int REQUEST_CAMERA = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE = 2;
+    private static final int INTERNET = 4;
+    private static final int ACCESS_NETWORK_STATE = 5;
+    private static final int ACCESS_FINE_LOCATION = 6;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_submit_case);
-        setup();
-//        if (checkPlayServices()) {
-//            createLocationRequest();
-//        }
+        findViews();
+    }
+
+    private void checkCameraPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestCameraPermission();
+        } else
+            takePhoto();
+    }
+
+    private void requestCameraPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.CAMERA)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}
+                    ,
+                    REQUEST_CAMERA);
+        }
+    }
+
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission();
+        } else if (checkPlayServices())
+            buildGoogleApiClient();
+    }
+
+    private void requestLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
+                    ,
+                    ACCESS_FINE_LOCATION);
+        }
+    }
+
+    private void checkWritePermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestWritesPermission();
+        } else
+            checkAudioPermission();
+    }
+
+    private void requestWritesPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                    ,
+                    REQUEST_EXTERNAL_STORAGE);
+        }
+        else
+            checkAudioPermission();
+    }
+
+    private void checkAudioPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestAudioPermission();
+        } else
+            setupRecorder();
+    }
+
+    private void requestAudioPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.RECORD_AUDIO)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}
+                    ,
+                    REQUEST_AUDIO);
+        }
+        else
+        setupRecorder();
     }
 
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
-//            startLocationUpdates();
-//        }
-
+    public void doGetLocation(View v) {
+        try {
+            checkLocationPermission();
+        }
+        catch(Exception ex){}
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-//        stopLocationUpdates();
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
     }
 
     @Override
@@ -119,128 +206,108 @@ public class SubmitCaseActivity extends Activity {
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_send) {
+
+    public void doSubmitCase(View v) {
+        try {
             if (mPhotoFile == null)
                 Toast.makeText(SubmitCaseActivity.this, "Please select photo", Toast.LENGTH_SHORT).show();
+            if (mAudioFile == null)
+                Toast.makeText(SubmitCaseActivity.this, "Please Add Voice Note", Toast.LENGTH_SHORT).show();
             else if (tvTitle.getText().toString().trim().equals("") || tvDesc.getText().toString().trim().equals(""))
                 Toast.makeText(SubmitCaseActivity.this, "Enter case title / Desc", Toast.LENGTH_SHORT).show();
             else
-                submitCaseAsyncTask(mCase);
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void submitCase(View v) {
-        if (mPhotoFile == null)
-            Toast.makeText(SubmitCaseActivity.this, "Please select photo", Toast.LENGTH_SHORT).show();
-        else if (tvTitle.getText().toString().trim().equals("") || tvDesc.getText().toString().trim().equals(""))
-            Toast.makeText(SubmitCaseActivity.this, "Enter case title / Desc", Toast.LENGTH_SHORT).show();
-        else
-            submitCaseAsyncTask(mCase);
-    }
-
-    public void setup() {
-        outputFile = Environment.getExternalStorageDirectory()
-                .getAbsolutePath() + "/itworx_inspector.3gpp";
-
-        myRecorder = new MediaRecorder();
-        myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        myRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        myRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        try {
-            mAudioFile = createAudioFile();
-            Log.d("", "Audio File:" + mAudioFile.getPath());
-            myRecorder.setOutputFile(mAudioFile.getPath());
+                prepareCaseAsyncTask(mCase);
         } catch (Exception ex) {
         }
+    }
 
+
+    private void findViews() {
         text = (TextView) findViewById(R.id.tv_record);
-        lblLocation = (TextView) findViewById(R.id.textView);
-        tvTitle = (TextView) findViewById(R.id.editText);
-        tvDesc = (TextView) findViewById(R.id.editText2);
-
+        lblLocation = (TextView) findViewById(R.id.tv_location);
+        tvTitle = (TextView) findViewById(R.id.et_title);
+        tvDesc = (TextView) findViewById(R.id.et_description);
         startBtn = (Button) findViewById(R.id.btnStart);
-        startBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                start(v);
-            }
-        });
 
         stopBtn = (Button) findViewById(R.id.btnStop);
+        playBtn = (Button) findViewById(R.id.btnPlay);
+        stopPlayBtn = (Button) findViewById(R.id.btnStopPlay);
+
+        this.imageView = (ImageView) this.findViewById(R.id.imageView);
+        lblLocation = (TextView) findViewById(R.id.tv_location);
+        Button photoButton = (Button) this.findViewById(R.id.btnCapture);
+
+    }
+
+
+    private void addListners() {
+
         stopBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                stop(v);
+                stop();
             }
         });
-
-        playBtn = (Button) findViewById(R.id.btnPlay);
         playBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                play(v);
+                play();
             }
         });
 
-        stopPlayBtn = (Button) findViewById(R.id.btnStopPlay);
         stopPlayBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                stopPlay(v);
+                stopPlay();
             }
         });
 
-        this.imageView = (ImageView) this.findViewById(R.id.imageView);
-        lblLocation = (TextView) findViewById(R.id.textView2);
-        Button photoButton = (Button) this.findViewById(R.id.btnCapture);
-        photoButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                takePicture(v);
-
-            }
-        });
     }
 
-    public void start(View view) {
+    public void setupRecorder() {
+        try {
+            outputFile = Environment.getExternalStorageDirectory()
+                    .getAbsolutePath() + "/itworx_inspector.3gpp";
+            myRecorder = new MediaRecorder();
+            myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            myRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            myRecorder.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+            mAudioFile = createAudioFile();
+            Log.d("", "Audio File:" + mAudioFile.getPath());
+            myRecorder.setOutputFile(mAudioFile.getPath());
+            addListners();
+            start();
+
+        } catch (Exception ex) {
+            Toast.makeText(SubmitCaseActivity.this, "Device Mic is not recognized:" + ex.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
+    private void start() {
         try {
             myRecorder.prepare();
             myRecorder.start();
         } catch (IllegalStateException e) {
-            // start:it is called before prepare()
-            // prepare: it is called after start() or before setOutputFormat()
-            e.printStackTrace();
+            Log.d("", "cant start recording illegal ");
         } catch (IOException e) {
-            // prepare() fails
-            e.printStackTrace();
+            Log.d("", "cant start recording");
         }
-
         text.setText("Recording Point: Recording");
         startBtn.setEnabled(false);
         stopBtn.setEnabled(true);
-
         Toast.makeText(getApplicationContext(), "Start recording...",
                 Toast.LENGTH_SHORT).show();
     }
 
-    public void stop(View view) {
+    public void stop() {
         try {
             myRecorder.stop();
             myRecorder.release();
@@ -261,7 +328,7 @@ public class SubmitCaseActivity extends Activity {
         }
     }
 
-    public void play(View view) {
+    public void play() {
         try {
             myPlayer = new MediaPlayer();
             myPlayer.setDataSource(mAudioFile.getPath());
@@ -280,7 +347,7 @@ public class SubmitCaseActivity extends Activity {
         }
     }
 
-    public void stopPlay(View view) {
+    public void stopPlay() {
         try {
             if (myPlayer != null) {
                 myPlayer.stop();
@@ -302,6 +369,7 @@ public class SubmitCaseActivity extends Activity {
 
 
     private File createImageFile() throws IOException {
+
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -328,53 +396,38 @@ public class SubmitCaseActivity extends Activity {
     }
 
 
-    public void takePicture(View v) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            try {
-                mPhotoFile = createImageFile();
-            } catch (IOException ex) {
-
-            }
-            if (mPhotoFile != null) {
-                mPhotoFileUri = Uri.fromFile(mPhotoFile);
-                Log.d("", "einspector:url" + mPhotoFileUri.getPath());
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoFileUri);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
+    public void doTakePhoto(View v) {
+        checkCameraPermission();
     }
 
-    public void sendCase() {
+    public void doRecord(View v) {
+        checkWritePermission();
+    }
+
+    private void takePhoto() {
         try {
-            //Upload Image
-            final String filePath = mPhotoFileUri.getPath();
-            final String fileName = mPhotoFile.getName();
-            final String fileNameAudio = mAudioFile.getName();
-            final String filePathAudio = mAudioFile.getPath();
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            // Ensure that there's a camera activity to handle the intent
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                // Create the File where the photo should go
+                try {
+                    mPhotoFile = createImageFile();
+                } catch (IOException ex) {
 
-            new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    URI url = AzureBlopManager.uploadBlop(filePath, fileName);
-                    URI urlAudio = AzureBlopManager.uploadBlop(filePathAudio, fileNameAudio);
-                    Log.d("", "url_videio" + url);
-                    Log.d("", "url_audio" + urlAudio);
-
-                    mCase.incidentImageURI = url.toString();
-                    mCase.incidentAudioURI = urlAudio.toString();
-                    Log.d("", "after taken 1:" + mCase.incidentImageURI);
-                    return null;
                 }
-            }.execute();
+                if (mPhotoFile != null) {
+                    mPhotoFileUri = Uri.fromFile(mPhotoFile);
+                    Log.d("", "einspector:url" + mPhotoFileUri.getPath());
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mPhotoFileUri);
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                }
+            }
         } catch (Exception ex) {
-            Log.d("", "error:" + ex.getMessage());
         }
     }
 
-    public void submitCaseAsyncTask(final Case _case) {
+
+    public void prepareCaseAsyncTask(final Case _case) {
         mCase.agentId = "Jason";
         mCase.caseNumber = "CS:20b3BV";
         mCase.description = tvDesc.getText().toString().trim();
@@ -442,78 +495,92 @@ public class SubmitCaseActivity extends Activity {
         }.execute();
     }
 
-//    @Override
-//    public void onConnected(Bundle bundle) {
-//        Log.d("","location:connected");
-//        displayLocation();
-//        startLocationUpdates();
-//    }
-//
-//    @Override
-//    public void onConnectionSuspended(int i) {
-//
-//    }
-//
-//    @Override
-//    public void onLocationChanged(Location location) {
-//// Assign the new location
-//        mLastLocation = location;
-//
-//        Toast.makeText(getApplicationContext(), "Location changed!",
-//                Toast.LENGTH_SHORT).show();
-//        // Displaying the new location on UI
-//        displayLocation();
-//    }
-//
-//    private void displayLocation() {
-//        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-//        if (mLastLocation != null) {
-//            double latitude = mLastLocation.getLatitude();
-//            double longitude = mLastLocation.getLongitude();
-//            lblLocation.setText("Location:"+latitude + ", " + longitude);
-//        } else {
-//            lblLocation
-//                    .setText("(Couldn't get the location. Make sure location is enabled on the device)");
-//        }
-//    }
-//    @Override
-//    public void onConnectionFailed(ConnectionResult connectionResult) {
-//
-//    }
-//
-//    protected void startLocationUpdates() {
-//        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-//    }
-//
-//    protected void stopLocationUpdates() {
-//        LocationServices.FusedLocationApi.removeLocationUpdates(
-//                mGoogleApiClient, this);
-//    }
-//
-//
-//    private boolean checkPlayServices() {
-//        int resultCode = GooglePlayServicesUtil
-//                .isGooglePlayServicesAvailable(this);
-//        if (resultCode != ConnectionResult.SUCCESS) {
-//            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-//                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-//                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-//            } else {
-//                Toast.makeText(getApplicationContext(),
-//                        "This device is not supported.", Toast.LENGTH_LONG)
-//                        .show();
-//                finish();
-//            }
-//            return false;
-//        }
-//        return true;
-//    }
-//
-//    protected void createLocationRequest() {
-//        mLocationRequest = new LocationRequest();
-//        mLocationRequest.setInterval(UPDATE_INTERVAL);
-//        mLocationRequest.setFastestInterval(FATEST_INTERVAL);
-//        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        mLocationRequest.setSmallestDisplacement(DISPLACEMENT); // 10 meters
-//    }
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d("", "location:connected");
+        displayLocation();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+    }
+
+    public void displayLocation() {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            double latitude = mLastLocation.getLatitude();
+            double longitude = mLastLocation.getLongitude();
+            lblLocation.setText("Location:" + latitude + ", " + longitude);
+        } else {
+            lblLocation
+                    .setText("(Couldn't get the location. Make sure location is enabled on the device)");
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.i("", "Connection failed: ConnectionResult.getErrorCode() = "
+                + result.getErrorCode());
+    }
+
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil
+                .isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else {
+                Toast.makeText(getApplicationContext(),
+                        "This device is not supported.", Toast.LENGTH_LONG)
+                        .show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void displayGoogleMaps() {
+        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+        DAVAO = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+
+        Marker davao = map.addMarker(new MarkerOptions().position(DAVAO).title("Davao City").snippet("Ateneo de Davao University"));
+        // zoom in the camera to Davao city
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(DAVAO, 15));
+        // animate the zoom process
+        map.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CAMERA) {
+            Log.i("", "Received response for Camera permission request.");
+            if (grantResults.length > 0 && REQUEST_CAMERA == PackageManager.PERMISSION_GRANTED) {
+                takePhoto();
+            }
+        }
+        if (requestCode == REQUEST_AUDIO) {
+            Log.i("", "Received response for Camera permission request.");
+            if (grantResults.length > 0 && REQUEST_AUDIO == PackageManager.PERMISSION_GRANTED) {
+                addListners();
+            }
+        }
+        if (requestCode == REQUEST_EXTERNAL_STORAGE) {
+            Log.i("", "Received response for Camera permission request.");
+            if (grantResults.length > 0 && REQUEST_EXTERNAL_STORAGE == PackageManager.PERMISSION_GRANTED) {
+
+            }
+        }
+        if (requestCode == ACCESS_FINE_LOCATION) {
+            Log.i("", "Received response for Camera permission request.");
+            if (grantResults.length > 0 && ACCESS_FINE_LOCATION == PackageManager.PERMISSION_GRANTED) {
+
+            }
+        }
+
+    }
 }

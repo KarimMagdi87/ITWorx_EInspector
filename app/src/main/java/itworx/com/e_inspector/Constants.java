@@ -20,7 +20,7 @@ public class Constants {
     // RedirectUri
     static final String REDIRECT_URL = "http://helloapp";
 
-    // URI for the resource. You need to setup this resource at AAD
+    // URI for the resource. You need to setupRecorder this resource at AAD
     static final String RESOURCE_ID = "2720df1b-a913-4b2d-be8c-e759a4aaa36a";
 
     // Endpoint we are targeting for the deployed WebAPI service

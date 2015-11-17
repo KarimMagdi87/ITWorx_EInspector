@@ -21,7 +21,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
 
-        String sql = "CREATE TABLE cases (agentId VARCHAR, caseNumber VARCHAR,description VARCHAR, endTime DATETIME DEFAULT CURRENT_DATE, incidentAudioURI VARCHAR, incidentImageURI VARCHAR, latitude VARCHAR, longitude VARCHAR, resolutionComment VARCHAR, resolutionImageURI VARCHAR, status VARCHAR, title VARCHAR, startTime VARCHAR DEFAULT CURRENT_DATE)";
+        String sql = "CREATE TABLE cases (agentId VARCHAR, caseNumber VARCHAR,description VARCHAR, endTime DATETIME DEFAULT CURRENT_DATE, incidentAudioURI VARCHAR, incidentImageURI VARCHAR, latitude VARCHAR, longitude VARCHAR, resolutionComment VARCHAR, resolutionImageURI VARCHAR, status VARCHAR, title VARCHAR, startTime VARCHAR DEFAULT CURRENT_DATE,submittedBy varchar ,escalation int)";
         sqLiteDatabase.execSQL(sql);
     }
 

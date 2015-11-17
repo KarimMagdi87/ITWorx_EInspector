@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.EventLogTags;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
@@ -21,26 +23,36 @@ import java.io.IOException;
 public class CaseDetailsActivity extends Activity {
 
     ImageView imageView;
-    EditText etDesc;
+    TextView etDesc;
     String audioFile;
     Button btnPlay, btnStop;
+    public static final String TITLE = "title";
+    public static final String PublishContent = "PublishContent";
+    public static final String DOESLIKE = "DOESLIKE";
+    public static final String LIKES = "LIKES";
+    public static final String IMAGE = "image";
+    public static final String Location = "location";
+    public static final String DATE = "date";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_case_details);
-        imageView = (ImageView) findViewById(R.id.imageView2);
+        imageView = (ImageView) findViewById(R.id.imageView);
         btnPlay = (Button) findViewById(R.id.buttonPlay);
         btnStop = (Button) findViewById(R.id.buttonStop);
 
-        etDesc = (EditText) findViewById(R.id.editText3);
+        etDesc = (TextView) findViewById(R.id.tv_news_alldetails);
+       TextView tv_title =  (TextView) findViewById(R.id.tv_news_title);
+
         Intent intent = getIntent();
         if (intent != null) {
-            String image_uri = intent.getStringExtra("image-url");
-            String desc = intent.getStringExtra("desc");
+            String image_uri = intent.getStringExtra(IMAGE);
+            String desc = intent.getStringExtra(PublishContent);
             String lat = intent.getStringExtra("lat");
             String lon = intent.getStringExtra("lon");
             audioFile = intent.getStringExtra("audio");
+            String title  = intent.getStringExtra(TITLE);
 
             if (audioFile == null || audioFile.equals("")) {
                 btnPlay.setEnabled(false);
@@ -59,9 +71,13 @@ public class CaseDetailsActivity extends Activity {
                         .into(imageView);
             if (desc != null)
                 etDesc.setText(desc);
+            if(title!=null)
+                tv_title.setText(title);
         }
 
     }
+
+    public void update(View view){finish();}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

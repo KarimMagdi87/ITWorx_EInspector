@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="users">
+        <item>Me</item>
+        <item>Another Agent</item>
+    </array>
+    <array name="escalation">
+        <item>Day</item>
+        <item>Week</item>
+        <item>Month</item>
+    </array>
+    <array name="status">
+        <item>Submitted</item>
+        <item>Assigned</item>
+        <item>In Progress</item>
+        <item>Resolved</item>
+    </array>
+</resources>

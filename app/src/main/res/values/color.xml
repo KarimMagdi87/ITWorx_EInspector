@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="red">#b20e0f</color>
-    <color name="white">#ffffff</color>
     <color name="btn_bg">#3e4a56</color>
     <color name="black">#000</color>
-    <color name="orange">#FA0</color>
-
-    <color name="bg_gradient_start">#b21331</color>
-    <color name="bg_gradient_end">#820d2a</color>
+    <color name="orange">#F06622</color>
+    <color name="green">#159E91</color>
+    <color name="white">#ffffff</color>
     <color name="bg_button_login">#380813</color>
+    <color name="login_btn">#00b8b0</color>
+    <color name="login_hint">#878787</color>
+    <color name="login_bg">#577182</color>
+    <color name="sidebar_bg">#2b3840</color>
+    <color name="likes_bg">#eff3f6</color>
+    <color name="news_bg">#f8f0f0</color>
+    <color name="media_btn">#8d5ba6</color>
+    <color name="select_date_btn">#8d5ba6</color>
+
+    <color name="bg_gradient_start">@color/white</color>
+    <color name="bg_gradient_end">@color/black</color>
+
+    <color name="spinner_text_color">@color/black</color>
 
 </resources>

@@ -6,6 +6,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,27 +29,32 @@ public class CasesListActivity extends Activity {
     private ProgressDialog pDialog;
     public static final int progress_bar_type = 0;
     List<Case> cases = null;
+    RecyclerView rv;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        lv = (ListView) findViewById(R.id.listcases);
+        rv = (RecyclerView) findViewById(R.id.rv);
+        rv.setHasFixedSize(true);
+        LinearLayoutManager llm = new LinearLayoutManager(this);
+        rv.setLayoutManager(llm);
 //        getCasesAsyncTaskOffline();
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(CasesListActivity.this, CaseDetailsActivity.class);
-                Case selectedCase = (Case) parent.getItemAtPosition(position);
-                intent.putExtra("image-url", selectedCase.incidentImageURI);
-                intent.putExtra("lat", selectedCase.latitude);
-                intent.putExtra("lon", selectedCase.longitude);
-                intent.putExtra("desc", selectedCase.description);
-                intent.putExtra("audio", selectedCase.incidentAudioURI);
-                startActivity(intent);
-            }
-        });
+//        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent = new Intent(CasesListActivity.this, CaseDetailsActivity.class);
+//                Case selectedCase = (Case) parent.getItemAtPosition(position);
+//                intent.putExtra("image-url", selectedCase.incidentImageURI);
+//                intent.putExtra("lat", selectedCase.latitude);
+//                intent.putExtra("lon", selectedCase.longitude);
+//                intent.putExtra("desc", selectedCase.description);
+//                intent.putExtra("audio", selectedCase.incidentAudioURI);
+//                startActivity(intent);
+//            }
+//        });
 
     }
 
@@ -180,8 +187,8 @@ public class CasesListActivity extends Activity {
                     pDialog.dismiss();
                 if (lstCases != null) {
                     ArrayList<Case> lst = new ArrayList<Case>(lstCases);
-                    CaseAdapter caseAdapter = new CaseAdapter(CasesListActivity.this, R.layout.list_item, lst);
-                    lv.setAdapter(caseAdapter);
+                    RVCaseAdapter caseAdapter = new RVCaseAdapter(CasesListActivity.this, lst);
+                    rv.setAdapter(caseAdapter);
                 }
                 // Dismiss the progress dialog
             }
